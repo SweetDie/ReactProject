@@ -1,62 +1,40 @@
-import axios from "axios";
-import React from "react";
-import { useEffect, useState } from "react";
-import Loader from "../loader";
-
-interface IProduct {
-  id: number;
-  name: string;
-  detail: string;
-  created_at: string;
-  updated_at: string;
-}
+import { useEffect } from "react";
+import http from "../../http_common";
+import { useDispatch } from "react-redux";
+import { IProductItem } from "./store/types";
+import { useTypedSelector } from "../../hooks/useTypedSelector";
 
 const HomePage = () => {
-  const [data, setData] = useState<IProduct[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { list } = useTypedSelector((store) => store.product);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    setLoading(true);
-    axios
-      .get("http://laravel.pv016.com/api/products")
-      .then(function (response) {
-        setData(response.data);
-        setLoading(false);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
+    http.get<Array<IProductItem>>("/api/products").then((resp) => {
+      dispatch({ type: "PRODUCT_LIST", payload: resp.data });
+    });
   }, []);
 
-  if (loading) {
-    return <Loader />;
-  }
+  const data = list.map((product) => (
+    <tr key={product.id}>
+      <td>{product.id}</td>
+      <td>{product.name}</td>
+      <td>{product.detail}</td>
+    </tr>
+  ));
+
   return (
     <>
-      <h1>Main page</h1>
-      <div className="posts-container">
-        <table className="table table-bordered">
-          <thead>
-            <tr>
-              <th>Id</th>
-              <th>Name</th>
-              <th>Detail</th>
-              <th>Create date</th>
-            </tr>
-          </thead>
-
-          {data.map((product, index) => (
-            <tbody key={product.id}>
-              <tr>
-                <td>{product.id}</td>
-                <td>{product.name}</td>
-                <td>{product.detail}</td>
-                <td>{product.created_at}</td>
-              </tr>
-            </tbody>
-          ))}
-        </table>
-      </div>
+      <h1 className="text-center">Main page</h1>
+      <table className="table">
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Detail</th>
+          </tr>
+        </thead>
+        <tbody>{data}</tbody>
+      </table>
     </>
   );
 };
