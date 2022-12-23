@@ -5,6 +5,7 @@ import LoginPage from "./components/auth/login";
 import RegisterPage from "./components/auth/register";
 import NoMatchPage from "./components/noMatch";
 import DefaultLayout from "./components/containers/default";
+import CreateProduct from "./components/createProduct";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route index element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="createProduct" element={<CreateProduct />} />
         <Route path="*" element={<NoMatchPage />} />
       </Route>
     </Routes>

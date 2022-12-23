@@ -2,6 +2,7 @@ import { IProductState, ProductActionTypes } from "./types";
 
 const initialState: IProductState = {
   list: [],
+  response: ""
 };
 
 export const productReducer = (
@@ -14,6 +15,18 @@ export const productReducer = (
         ...state,
         list: [...action.payload],
       };
+    }
+    case ProductActionTypes.PRODUCT_DELETE: {
+        return {
+          ...state,
+          response: action.payload.message
+        };
+    }
+    case ProductActionTypes.PRODUCT_CREATE: {
+        return {
+          ...state,
+          response: action.payload.message
+        };
     }
     default:
       return state;
