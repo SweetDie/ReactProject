@@ -11,6 +11,7 @@ const HomePage = () => {
   function buttonClickHandler (id: number) {    
     http.delete(`/api/products/${id}`).then((resp) => {      
       dispatch({ type: "PRODUCT_DELETE", payload: resp.data });
+      window.location.reload();
     });
   };
 

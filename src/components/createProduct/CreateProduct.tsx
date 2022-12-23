@@ -20,6 +20,7 @@ const CreateProduct = () => {
 
     http.post("/api/products/create", newProduct).then((resp) => {
         dispatch({ type: "PRODUCT_CREATE", payload: resp.data });
+        window.location.href = "/";
     });
   }
 
