@@ -4,14 +4,6 @@ import { useDispatch } from "react-redux";
 import http from "../../../http_common";
 
 const DefaultHeader = () => {
-  const { list } = useTypedSelector((store) => store.product);
-  const dispatch = useDispatch();
-
-  function search(event : React.ChangeEvent<HTMLInputElement>) {
-    http.get<any>(`/api/products?name=${event.target.value}`).then((resp) => {
-      dispatch({ type: "PRODUCT_LIST", payload: resp.data.data });
-    });
-  }
 
   return (
     <header>
@@ -49,17 +41,6 @@ const DefaultHeader = () => {
               </li>
             </ul>
             <ul className="navbar-nav">
-            <li>
-              <form className="form-inline my-2 my-lg-0">
-                  <input
-                    className="form-control mr-sm-2"
-                    type="search"
-                    placeholder="Search"
-                    aria-label="Search"
-                    onChange={search}
-                  />
-                </form>
-              </li> 
               <li className="nav-item">
                 <Link className="nav-link" aria-current="page" to="/register">
                   Реєстрація

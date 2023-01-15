@@ -1,34 +1,22 @@
-import { IProductState, ProductActionTypes } from "./types";
+import { Action } from '@remix-run/router';
+import { IProductState, ProductActionTypes, ProductActions } from './types';
 
-const initialState: IProductState = {
-  list: [],
-  response: ""
+const initialState : IProductState = {
+    list: [],
+    count_pages: 0,
+    current_page: 0,
+    total: 0
 };
 
-export const productReducer = (
-  state = initialState,
-  action: any
-): IProductState => {
-  switch (action.type) {
-    case ProductActionTypes.PRODUCT_LIST: {
-      return {
-        ...state,
-        list: [...action.payload],
-      };
+export const productReducer = (state= initialState, action: ProductActions) : IProductState => {
+    switch(action.type) {
+        case ProductActionTypes.PRODUCT_LIST: {
+            return {
+                ...state,
+                ...action.payload
+            }
+        }
+        default:
+            return state;
     }
-    case ProductActionTypes.PRODUCT_DELETE: {
-        return {
-          ...state,
-          response: action.payload.message
-        };
-    }
-    case ProductActionTypes.PRODUCT_CREATE: {
-        return {
-          ...state,
-          response: action.payload.message
-        };
-    }
-    default:
-      return state;
-  }
-};
+}

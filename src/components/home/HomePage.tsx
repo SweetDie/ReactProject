@@ -1,37 +1,26 @@
 import { useEffect, useState } from "react";
-import http from "../../http_common";
-import { useDispatch } from "react-redux";
 import { useTypedSelector } from "../../hooks/useTypedSelector";
+import { useActions } from "../../hooks/useActions";
+import { Link, useSearchParams } from "react-router-dom";
+import { IProductSearch } from "./store/types";
+import classNames from "classnames";
+import qs from "qs";
+import { useFormik } from "formik";
 
 const HomePage = () => {
-  const { list } = useTypedSelector((store) => store.product);
-  const dispatch = useDispatch();
-  const [lastPage, setLastPage] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-
-  function buttonClickHandler(id: number) {
-    http.delete(`/api/products/${id}`).then((resp) => {
-      dispatch({ type: "PRODUCT_DELETE", payload: resp.data });
-      window.location.reload();
-    });
-  }
-
-  function selectPage(page: number) {
-    if (page >= 1 && page <= lastPage) {
-      setCurrentPage(page);
-      http.get<any>(`/api/products?page=${currentPage}`).then((resp) => {
-        setLastPage(resp.data.last_page);
-        dispatch({ type: "PRODUCT_LIST", payload: resp.data.data });
-      });
-    }
-  }
+  const { list, count_pages, current_page, total } = useTypedSelector(
+    (store) => store.product
+  );
+  const { GetProductList } = useActions();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [search, setSearch] = useState<IProductSearch>({
+    name: searchParams.get("name") || "",
+    page: searchParams.get("page") || 1,
+  });
 
   useEffect(() => {
-    http.get<any>("/api/products").then((resp) => {
-      setLastPage(resp.data.last_page);
-      dispatch({ type: "PRODUCT_LIST", payload: resp.data.data });
-    });
-  }, []);
+    GetProductList(search);
+  }, [search]);
 
   const data = list.map((product) => (
     <tr key={product.id}>
@@ -39,52 +28,81 @@ const HomePage = () => {
       <td>{product.name}</td>
       <td>{product.detail}</td>
       <td>
-        <button
-          className="btn btn-danger"
-          onClick={() => buttonClickHandler(product.id)}
-        >
-          Delete
-        </button>
+        <button className="btn btn-danger">Delete</button>
       </td>
     </tr>
   ));
 
-  const pages = [];
-  for (let i = 1; i <= lastPage; i++) {
-    pages.push(
-      <li key={i} className="page-item">
-        <a className="page-link" onClick={() => selectPage(i)}>
-          {i}
-        </a>
-      </li>
-    );
+  const buttons = [];
+  for (let i = 1; i <= count_pages; i++) {
+    buttons.push(i);
   }
+
+  function filterNonNull(obj: IProductSearch) {
+    return Object.fromEntries(Object.entries(obj).filter(([k, v]) => v));
+  }
+
+  const pagination = buttons.map((page) => (
+    <li key={page} className="page-item">
+      <Link
+        className={classNames("page-link", { active: current_page === page })}
+        onClick={() => setSearch({ ...search, page })}
+        to={"?" + qs.stringify(filterNonNull({ ...search, page }))}
+      >
+        {page}
+      </Link>
+    </li>
+  ));
+
+  const onSubmit = (values: IProductSearch) => {
+    const filter = {...values, page:1};
+    setSearchParams(qs.stringify(filterNonNull(filter)));
+    setSearch(filter);
+  }
+  const formik = useFormik({
+    initialValues: search,
+    onSubmit: onSubmit,
+  }); 
+
+  const {handleSubmit, values, handleChange} = formik;
 
   return (
     <>
-      <h1 className="text-center">Main page</h1>
+      <h1 className="text-center">Main Page</h1>
+      <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <label htmlFor="name" className="form-label">
+            Name
+          </label>
+          <input
+            type="text"
+            className="form-control"
+            id="name"
+            name="name"
+            onChange={handleChange}
+            value={values.name}
+          />
+        </div>
+        <button type="submit" className="btn btn-primary">
+          Search
+        </button>
+      </form>
+
+      <h4>
+        Total products <strong>{total}</strong>
+      </h4>
       <table className="table">
         <thead>
           <tr>
             <th>Id</th>
             <th>Name</th>
             <th>Detail</th>
-            <th></th>
           </tr>
         </thead>
         <tbody>{data}</tbody>
       </table>
-      <nav aria-label="Page navigation example">
-        <ul className="pagination pg-blue">
-          <li className="page-item">
-            <a className="page-link" onClick={() => selectPage(currentPage - 1)}>Previous</a>
-          </li>
-          {pages}
-          <li className="page-item">
-            <a className="page-link" onClick={() => selectPage(currentPage + 1)}>Next</a>
-          </li>
-        </ul>
-        <span>current page {currentPage}</span>
+      <nav>
+        <ul className="pagination">{pagination}</ul>
       </nav>
     </>
   );
